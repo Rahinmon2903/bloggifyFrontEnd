@@ -1,0 +1,103 @@
+import React, { useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
+import { toast } from "react-toastify";
+import api from "../Services/api.js";
+
+const ResetPassword = () => {
+  const navigate = useNavigate();
+  const { id, token } = useParams();
+
+  const [password, setPassword] = useState("");
+  const [showpassword, setShowPassword] = useState(false);
+  const [error, setError] = useState(null);
+
+  const HandleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      const response = await api.post(
+        `/auth/reset-password/${id}/${token}`,
+        { password }
+      );
+
+      toast.success(response.data.message);
+      setError(null);
+      navigate("/login");
+    } catch (error) {
+      const msg =
+        error.response?.data?.message || "Password reset failed";
+      setError(msg);
+      toast.error(msg);
+    }
+
+    setPassword("");
+  };
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center px-4">
+      <div className="w-full max-w-md bg-white border border-gray-200 rounded-2xl shadow-2xl p-10">
+        <div className="mb-8 text-center">
+          <h1 className="text-3xl font-semibold text-gray-900 tracking-tight">
+            Reset Password
+          </h1>
+
+          {error && (
+            <div className="mt-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
+              {error}
+            </div>
+          )}
+        </div>
+
+        <form className="space-y-6" onSubmit={HandleSubmit}>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              New Password
+            </label>
+
+            <div className="relative">
+              <input
+                type={showpassword ? "text" : "password"}
+                value={password}
+                required
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="Enter new password"
+                className="w-full px-4 py-3 pr-16 border border-gray-300 rounded-xl 
+                           focus:border-blue-500 focus:ring-blue-500 focus:ring-2 
+                           outline-none transition"
+              />
+
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showpassword)}
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-sm 
+                           text-blue-600 font-medium hover:text-blue-800 transition"
+              >
+                {showpassword ? "Hide" : "Show"}
+              </button>
+            </div>
+          </div>
+
+          <button
+            type="submit"
+            className="w-full py-3 bg-blue-600 text-white font-semibold rounded-xl 
+                       hover:bg-blue-700 transition-all shadow-md hover:shadow-lg 
+                       active:scale-[0.98]"
+          >
+            Update Password
+          </button>
+        </form>
+
+        <p className="text-center text-sm text-gray-500 mt-6">
+          Remembered your password?
+          <a
+            href="/login"
+            className="text-blue-600 hover:underline font-medium ml-1"
+          >
+            Login
+          </a>
+        </p>
+      </div>
+    </div>
+  );
+};
+
+export default ResetPassword;
