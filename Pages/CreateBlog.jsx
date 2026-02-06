@@ -38,10 +38,16 @@ const CreateBlog = () => {
       toast.success(response.data.message);
       setError(null);
 
-      // ✅ Guaranteed redirect
+      
       navigate("/", { replace: true });
 
     } catch (error) {
+        console.log("FULL ERROR:", error);
+  console.log("RESPONSE:", error?.response);
+  console.log("DATA:", error?.response?.data);
+  console.log("STATUS:", error?.response?.status);
+
+  toast.error("Check console");
       console.log(error);
       const msg = error?.response?.data?.message || "Something went wrong";
       setError(msg);
