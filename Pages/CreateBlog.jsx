@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { toast } from 'react-toastify';
-import api from '../Services/api.js';
-import ReactQuill from 'react-quill-new';
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
+import api from "../Services/api.js";
+import ReactQuill from "react-quill-new";
 import "react-quill-new/dist/quill.snow.css";
 
 const CreateBlog = () => {
@@ -12,6 +12,7 @@ const CreateBlog = () => {
   const [description, setDescription] = useState("");
   const [image, setImage] = useState(null);
   const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -20,38 +21,36 @@ const CreateBlog = () => {
       return setError("All fields are required");
     }
 
-    const newdescription = description.replace(/<\/?p>/g, "");
-
     const formData = new FormData();
     formData.append("title", title);
-    formData.append("description", newdescription);
+    formData.append("description", description); // ✅ keep HTML
     formData.append("image", image);
 
     try {
+      setLoading(true);
+
       const response = await api.post("/post/create", formData, {
         headers: {
-          "Content-Type": "multipart/form-data",
-          Authorization: `Bearer ${localStorage.getItem("token")}`
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
       });
 
       toast.success(response.data.message);
       setError(null);
-
-      
       navigate("/", { replace: true });
 
-    } catch (error) {
-        console.log("FULL ERROR:", error);
-  console.log("RESPONSE:", error?.response);
-  console.log("DATA:", error?.response?.data);
-  console.log("STATUS:", error?.response?.status);
+    } catch (err) {
+      console.error("CREATE BLOG ERROR:", err);
 
-  toast.error("Check console");
-      console.log(error);
-      const msg = error?.response?.data?.message || "Something went wrong";
+      const msg =
+        err?.response?.data?.message ||
+        "Failed to create blog";
+
       setError(msg);
       toast.error(msg);
+
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -64,7 +63,7 @@ const CreateBlog = () => {
         </h2>
 
         {error && (
-          <div className="mt-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
+          <div className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
             {error}
           </div>
         )}
@@ -88,16 +87,14 @@ const CreateBlog = () => {
             value={description}
             onChange={setDescription}
             placeholder="Enter blog description"
-            className="w-full border rounded-lg px-3 py-2 bg-white"
             theme="snow"
           />
 
           <div>
-            <label htmlFor="image" className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-gray-700 mb-1">
               Upload Image
             </label>
             <input
-              id="image"
               type="file"
               accept="image/*"
               onChange={(e) => setImage(e.target.files[0])}
@@ -105,14 +102,13 @@ const CreateBlog = () => {
             />
           </div>
 
-          <div className="flex gap-4 pt-4">
-            <button
-              type="submit"
-              className="flex-1 py-2 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold shadow hover:opacity-90 transition"
-            >
-              Create Blog
-            </button>
-          </div>
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full py-2 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold shadow hover:opacity-90 transition disabled:opacity-50"
+          >
+            {loading ? "Creating..." : "Create Blog"}
+          </button>
 
         </form>
       </div>
